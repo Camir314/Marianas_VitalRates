@@ -1,2 +1,3 @@
 # Marianas_VitalRates
-Mariana vital rates data collected 2014-2022
+Extracting Coral Vital Rate Estimates from Repeated Large-Area Imagery
+Includes Marianas vital rates data collected in 2014-2022
