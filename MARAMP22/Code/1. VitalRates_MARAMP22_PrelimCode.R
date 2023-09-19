@@ -74,8 +74,15 @@ raw$TL_Genet <- str_pad(raw$TL_Genet, 3, pad = "0")
 
 mari <- raw
 
+
+# Turn TimePt into Year
+mari$Year <- str_sub(mari$TL_Date,1,4)
+mari %>% group_by(Site, TL_Date, Year) %>% summarise() # QC check
+
+
+
 ## Create unique name for all genets: 
-mari$Genet_full <- paste(mari$Site,  mari$TL_Genet, mari$TimePt, sep = "_")
+mari$Genet_full <- paste(mari$Site,  mari$TL_Genet, mari$Year, sep = "_")
 mari[11,] # double check
 
 ## Create unique name for all genets: 
@@ -106,11 +113,6 @@ mari <- left_join(ll, mari)
 ## Add m2 surveyed (collected from tracking spreadsheet)
 
 mari <- left_join(mari, effort)
-
-
-# Turn TimePt into Year
-mari$Year <- str_sub(mari$TL_Date,1,4)
-mari %>% group_by(Site, TL_Date, Year) %>% summarise() # QC check
 
 
 ## Add area:perimeter ratio
@@ -183,6 +185,10 @@ mari_col <- left_join(mari_meta,mari_col)
 mari_col$Site_Genet <- paste(mari_col$Site,mari_col$TL_Genet,  sep = "_") # use this column to filter
 
 
+# Add column for number of patches
+a <- mari %>% group_by(Site, Year,TL_Genet) %>% summarise(nPatches = n())
+
+mari_col <- left_join(mari_col, a)
 
 #### Descriptive Tables using colony data ####
 # Total genets per Site-Year:
@@ -646,7 +652,8 @@ archive <- archive %>% dplyr::select(Site, Island, Island_Code, Latitude, Longit
 head(archive)
 
 #### Export Data ####
-setwd('C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files')
+# setwd('C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files')
+setwd('C:/Users/Corinne.Amir/Documents/GitHub/Marianas_VitalRates/MARAMP22/CSV files')
 write.csv(mari,"MARAMP22_VitalRates_CLEAN.csv",row.names = F)
 write.csv(mari_col,"MARAMP22_VitalRates_colonylevel_CLEAN.csv",row.names = F)
 write.csv(archive,"MARAMP22_VitalRates_colonylevel_archive.csv",row.names = F)
