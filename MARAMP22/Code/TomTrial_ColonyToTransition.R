@@ -38,6 +38,7 @@ if(TP_METHOD=="YEAR"){
   #ensure TP # are chronological
   ChronID=Date_TP_df %>% group_by(ID0) %>% summarize(mnDate=mean(Date)) %>% arrange(mnDate) 
   ChronID$IDc=1:nrow(ChronID)
+  
   #Build Chronological Lookup
   Date_TP_df=left_join(Date_TP_df,ChronID[,c("ID0","IDc")],by="ID0")
   Date_TP_LU=Date_TP_df$IDc;names(Date_TP_LU)=Date_TP_df$Date
@@ -49,10 +50,15 @@ if(TP_METHOD=="YEAR"){
 }
 
 # Two-Stage Transition Loop - Rbind Aggregation ---------------------------
-uTP=unique(Col$TP_ID)
+uTP=sort(unique(Col$TP_ID))
 #Loop through one less than the total number of TPs
 #site data
 SiteData=unique(Col[,c("Island","Site","Genus","TP_ID","Year","TL_Date")]) %>% arrange(Site,Genus,TP_ID)
+
+#joincols
+alljoincols=c("Island","Site","Genus","Site_Genet","TP_ID","Year","TL_Date","TL_Area","TL_Perim")
+byjoincols=c("Island","Site","Genus","Site_Genet")
+
 ColonyTransitions=NULL
 for(i_tp in 1:(length(uTP)-1)){
   TP_0=i_tp;TP_1=i_tp+1
@@ -61,13 +67,11 @@ for(i_tp in 1:(length(uTP)-1)){
   TP_0sites=SiteData %>% filter(TP_ID == TP_0) %>% select(Site) %>% distinct()
   TP_1sites=SiteData %>% filter(TP_ID == TP_1) %>% select(Site) %>% distinct()
   SampledSites=intersect(TP_0sites,TP_1sites)
+  #Subet colonies from sites that span the interval
   Col_tp2=Col %>% 
     filter(TP_ID %in% c(TP_0,TP_1)) %>% 
     filter(Site %in% SampledSites$Site)
   
-  #joincols
-  alljoincols=c("Island","Site","Genus","Site_Genet","TP_ID","Year","TL_Date","TL_Area","TL_Perim")
-  byjoincols=c("Island","Site","Genus","Site_Genet")
   #Count Colonies
   tSG=table(Col_tp2$Site_Genet)  #check: table(tSG)
   
@@ -88,7 +92,7 @@ for(i_tp in 1:(length(uTP)-1)){
   RMTr=names(tSG[which(tSG==1)])
   
   #extract data for RECR Trans
-  RTrCol_1=Col %>% 
+  RTrCol_1=Col_tp2 %>% 
     filter(Site_Genet %in% RMTr) %>% 
     filter(TP_ID == TP_1)  %>% 
     select(all_of(alljoincols))
@@ -102,7 +106,7 @@ for(i_tp in 1:(length(uTP)-1)){
   RTrCol$TransitionTypeSimple="RECR"
   
   #extract data for MORT Trans
-  MTrCol_0=Col %>% 
+  MTrCol_0=Col_tp2 %>% 
     filter(Site_Genet %in% RMTr) %>% 
     filter(TP_ID == TP_0)  %>% 
     select(all_of(alljoincols))
