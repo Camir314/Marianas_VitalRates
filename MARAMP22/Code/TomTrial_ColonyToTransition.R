@@ -7,6 +7,7 @@ library(NbClust)
 
 # Data Load ---------------------------------------------------------------
 Col=read.csv("./MARAMP22/CSV files/archive/MARAMP22_VitalRates_colonylevel_CLEAN.csv")
+Col$TL_Date=mdy(Col$TL_Date)
 
 # Determine Unique Time Points ---------------------------
 #Use YEAR OR DATE_CLUSTER
@@ -21,7 +22,7 @@ if(TP_METHOD=="YEAR"){
   
 }else if(TP_METHOD=="DATE_CLUSTER"){
   # but worth checking clustering at Date Level
-  uD=mdy(unique(Col$TL_Date))
+  uD=(unique(Col$TL_Date))
   uDD=dist(uD)
   #Determine best number of TimePoints by clustering
   K=NbClust(data = uD, diss = uDD, distance = NULL,
@@ -42,7 +43,7 @@ if(TP_METHOD=="YEAR"){
   Date_TP_LU=Date_TP_df$IDc;names(Date_TP_LU)=Date_TP_df$Date
   
   #Assign TimePoint IDs
-  Col$TP_ID=Date_TP_LU[as.character(mdy(Col$TL_Date))]
+  Col$TP_ID=Date_TP_LU[as.character((Col$TL_Date))]
 }else{
   stop("No valid Time Point selection method.")
 }
@@ -108,7 +109,7 @@ for(i_tp in 1:(length(uTP)-1)){
   #Build Fake TP_1 Dataframe
   MTrCol_1=MTrCol_0[,byjoincols]
   MTrCol_1$TP_ID=TP_1
-  MTrCol_1=left_join(MTrCol_1,SiteData_tp2,by=c("Island","Site","Genus","TP_ID"))
+  MTrCol_1=left_join(MTrCol_1,SiteData,by=c("Island","Site","Genus","TP_ID"))
   MTrCol_1$TL_Area=0
   MTrCol_1$TL_Perim=0
   MTrCol=left_join(MTrCol_0,MTrCol_1,by=byjoincols,suffix=c("_STA","_END"))
@@ -117,6 +118,13 @@ for(i_tp in 1:(length(uTP)-1)){
   TP2_Trans=rbind(GTrCol,RTrCol,MTrCol)
   ColonyTransitions=rbind(ColonyTransitions,TP2_Trans)
 }
+# Calculate Transition
+ColonyTransitions$Interval_Years=as.numeric(difftime(ColonyTransitions$TL_Date_END,ColonyTransitions$TL_Date_STA,units = "days"))/365.25
+ColonyTransitions$l10_Area_STA=log10(ColonyTransitions$TL_Area_STA)
+ColonyTransitions$l10_Area_END=log10(ColonyTransitions$TL_Area_END)
+ColonyTransitions$l10_Area_STA[is.infinite(ColonyTransitions$l10_Area_STA)]=NA
+ColonyTransitions$l10_Area_END[is.infinite(ColonyTransitions$l10_Area_END)]=NA
+ColonyTransitions$l10TransitionMagnitude=ColonyTransitions$l10_Area_END-ColonyTransitions$l10_Area_STA
 
 # Transition Data Out -----------------------------------------------------
 write.csv(x = ColonyTransitions,file = "./MARAMP22/CSV files/MARAMP_ColonyTransitions_TomTrial.csv")
