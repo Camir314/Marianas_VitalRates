@@ -619,8 +619,7 @@ step2 <- step2 %>% distinct()
 smallcol <- rbind(step1,step2) %>% distinct()
 
 archive<-subset(archive, Site_Genet %notin% smallcol$Site_Genet)
-
-
+#testtesttesttest
 
 archive$Site <- sub("-", "_", archive$Site);archive$Site <- sub("-", "_", archive$Site) #twice for both underscores
 archive$Error_Category <- "Growth Data"
@@ -658,3 +657,4 @@ write.csv(mari,"MARAMP22_VitalRates_CLEAN.csv",row.names = F)
 write.csv(mari_col,"MARAMP22_VitalRates_colonylevel_CLEAN.csv",row.names = F)
 write.csv(archive,"MARAMP22_VitalRates_colonylevel_archive.csv",row.names = F)
 
+str(mari)
