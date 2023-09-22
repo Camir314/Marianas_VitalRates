@@ -6,8 +6,8 @@ library(factoextra)
 library(NbClust)
 
 # Data Load ---------------------------------------------------------------
-Col=read.csv("./MARAMP22/CSV files/archive/MARAMP22_VitalRates_colonylevel_CLEAN.csv")
-Col$TL_Date=mdy(Col$TL_Date)
+Col=read.csv("./MARAMP22/CSV files/MARAMP22_VitalRates_colonylevel_CLEAN.csv")
+Col$TL_Date=ymd(Col$TL_Date)
 
 # Determine Unique Time Points ---------------------------
 #Use YEAR OR DATE_CLUSTER
@@ -22,19 +22,27 @@ if(TP_METHOD=="YEAR"){
   
 }else if(TP_METHOD=="DATE_CLUSTER"){
   # but worth checking clustering at Date Level
-  uD=(unique(Col$TL_Date))
+  uD=sort(unique(Col$TL_Date))
   uDD=dist(uD)
   #Determine best number of TimePoints by clustering
-  K=NbClust(data = uD, diss = uDD, distance = NULL,
-            min.nc = 2, max.nc = 10, method = "complete")
+  # K=NbClust(data = uD,diss = uDD,distance = NULL,
+  #          min.nc = 2, max.nc = 10, method = "complete")
+  # 
+  ################################################################################
+  ################################################################################
+  #Eyeball because Nbclust is failing
+  ################################################################################
+  ################################################################################
+  Kval=3
+  #Kval=max(K$Best.partition)
   
   #Check out dendrogram
   hcuDD=hclust(uDD)
   par(mfrow=c(1,1))
-  plot(hcuDD,labels=uD);rect.hclust(hcuDD,k=max(K$Best.partition))
+  plot(hcuDD,labels=uD);rect.hclust(hcuDD,k=Kval)
   
   #write Date to Timepoint number Look up table
-  Date_TP_df=data.frame(ID0=K$Best.partition,Date=uD)
+  Date_TP_df=data.frame(ID0=cutree(hcuDD,k=Kval),Date=uD)
   #ensure TP # are chronological
   ChronID=Date_TP_df %>% group_by(ID0) %>% summarize(mnDate=mean(Date)) %>% arrange(mnDate) 
   ChronID$IDc=1:nrow(ChronID)
@@ -53,7 +61,7 @@ if(TP_METHOD=="YEAR"){
 uTP=sort(unique(Col$TP_ID))
 #Loop through one less than the total number of TPs
 #site data
-SiteData=unique(Col[,c("Island","Site","Genus","TP_ID","Year","TL_Date")]) %>% arrange(Site,Genus,TP_ID)
+SiteData=unique(Col[,c("Island","Site","TP_ID","Year","TL_Date")]) %>% arrange(Site,TP_ID)
 
 #joincols
 alljoincols=c("Island","Site","Genus","Site_Genet","TP_ID","Year","TL_Date","TL_Area","TL_Perim")
@@ -99,7 +107,7 @@ for(i_tp in 1:(length(uTP)-1)){
   #Build Fake TP_0 Dataframe
   RTrCol_0=RTrCol_1[,byjoincols]
   RTrCol_0$TP_ID=TP_0
-  RTrCol_0=left_join(RTrCol_0,SiteData,by=c("Island","Site","Genus","TP_ID"))
+  RTrCol_0=left_join(RTrCol_0,SiteData,by=c("Island","Site","TP_ID"))
   RTrCol_0$TL_Area=0
   RTrCol_0$TL_Perim=0
   RTrCol=left_join(RTrCol_0,RTrCol_1,by=byjoincols,suffix=c("_STA","_END"))
@@ -113,7 +121,7 @@ for(i_tp in 1:(length(uTP)-1)){
   #Build Fake TP_1 Dataframe
   MTrCol_1=MTrCol_0[,byjoincols]
   MTrCol_1$TP_ID=TP_1
-  MTrCol_1=left_join(MTrCol_1,SiteData,by=c("Island","Site","Genus","TP_ID"))
+  MTrCol_1=left_join(MTrCol_1,SiteData,by=c("Island","Site","TP_ID"))
   MTrCol_1$TL_Area=0
   MTrCol_1$TL_Perim=0
   MTrCol=left_join(MTrCol_0,MTrCol_1,by=byjoincols,suffix=c("_STA","_END"))
