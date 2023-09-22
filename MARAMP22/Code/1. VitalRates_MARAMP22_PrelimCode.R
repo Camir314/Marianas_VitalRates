@@ -12,13 +12,14 @@ library(ggrepel)
 library(stringr)
 library(sp)
 
-# setwd("C:/Users/Corinne.Amir/Documents/N drive backup/Arc/Arc_Exports/")
-setwd("C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files/")
+# setwd("C:/Users/Corinne.Amir/Documents/N drive backup/Arc/Arc_Exports/") # Original location of raw data
+# setwd("C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files/") # Location for backup files
+setwd('C:/Users/Corinne.Amir/Documents/GitHub/Marianas_VitalRates/MARAMP22/CSV files') # Github repo
 raw <- read.csv("MARAMP22_VitalRates_07-24-2023.csv")
 ll <- read.csv("MARAMP22_VitalRates_LatLong.csv")
 effort <- read.csv("MARAMP22_SurveyEffort.csv")
-# mari <- read.csv("MARAMP22_VitalRates_patchlevel_CLEAN.csv") # created in this script
-# mari_col <- read.csv("MARAMP22_VitalRates_colonylevel_CLEAN.csv") # created in this script
+mari <- read.csv("MARAMP22_VitalRates_patchlevel_CLEAN.csv") # created in this script
+mari_col <- read.csv("MARAMP22_VitalRates_colonylevel_CLEAN.csv") # created in this script
 
 
 #### QC Data ####
@@ -619,7 +620,7 @@ step2 <- step2 %>% distinct()
 smallcol <- rbind(step1,step2) %>% distinct()
 
 archive<-subset(archive, Site_Genet %notin% smallcol$Site_Genet)
-#testtesttesttest
+
 
 archive$Site <- sub("-", "_", archive$Site);archive$Site <- sub("-", "_", archive$Site) #twice for both underscores
 archive$Error_Category <- "Growth Data"
@@ -653,8 +654,7 @@ head(archive)
 #### Export Data ####
 # setwd('C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files')
 setwd('C:/Users/Corinne.Amir/Documents/GitHub/Marianas_VitalRates/MARAMP22/CSV files')
-write.csv(mari,"MARAMP22_VitalRates_CLEAN.csv",row.names = F)
+write.csv(mari,"MARAMP22_VitalRates_patchlevel_CLEAN.csv",row.names = F)
 write.csv(mari_col,"MARAMP22_VitalRates_colonylevel_CLEAN.csv",row.names = F)
 write.csv(archive,"MARAMP22_VitalRates_colonylevel_archive.csv",row.names = F)
 
-str(mari)
