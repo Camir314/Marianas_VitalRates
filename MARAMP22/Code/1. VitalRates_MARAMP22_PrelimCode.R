@@ -12,13 +12,14 @@ library(ggrepel)
 library(stringr)
 library(sp)
 
-# setwd("C:/Users/Corinne.Amir/Documents/N drive backup/Arc/Arc_Exports/")
-setwd("C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files/")
+# setwd("C:/Users/Corinne.Amir/Documents/N drive backup/Arc/Arc_Exports/") # Original location of raw data
+# setwd("C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files/") # Location for backup files
+setwd('C:/Users/Corinne.Amir/Documents/GitHub/Marianas_VitalRates/MARAMP22/CSV files') # Github repo
 raw <- read.csv("MARAMP22_VitalRates_07-24-2023.csv")
 ll <- read.csv("MARAMP22_VitalRates_LatLong.csv")
 effort <- read.csv("MARAMP22_SurveyEffort.csv")
-# mari <- read.csv("MARAMP22_VitalRates_patchlevel_CLEAN.csv") # created in this script
-# mari_col <- read.csv("MARAMP22_VitalRates_colonylevel_CLEAN.csv") # created in this script
+mari <- read.csv("MARAMP22_VitalRates_patchlevel_CLEAN.csv") # created in this script
+mari_col <- read.csv("MARAMP22_VitalRates_colonylevel_CLEAN.csv") # created in this script
 
 
 #### QC Data ####
@@ -74,8 +75,15 @@ raw$TL_Genet <- str_pad(raw$TL_Genet, 3, pad = "0")
 
 mari <- raw
 
+
+# Turn TimePt into Year
+mari$Year <- str_sub(mari$TL_Date,1,4)
+mari %>% group_by(Site, TL_Date, Year) %>% summarise() # QC check
+
+
+
 ## Create unique name for all genets: 
-mari$Genet_full <- paste(mari$Site,  mari$TL_Genet, mari$TimePt, sep = "_")
+mari$Genet_full <- paste(mari$Site,  mari$TL_Genet, mari$Year, sep = "_")
 mari[11,] # double check
 
 ## Create unique name for all genets: 
@@ -106,11 +114,6 @@ mari <- left_join(ll, mari)
 ## Add m2 surveyed (collected from tracking spreadsheet)
 
 mari <- left_join(mari, effort)
-
-
-# Turn TimePt into Year
-mari$Year <- str_sub(mari$TL_Date,1,4)
-mari %>% group_by(Site, TL_Date, Year) %>% summarise() # QC check
 
 
 ## Add area:perimeter ratio
@@ -183,6 +186,10 @@ mari_col <- left_join(mari_meta,mari_col)
 mari_col$Site_Genet <- paste(mari_col$Site,mari_col$TL_Genet,  sep = "_") # use this column to filter
 
 
+# Add column for number of patches
+a <- mari %>% group_by(Site, Year,TL_Genet) %>% summarise(nPatches = n())
+
+mari_col <- left_join(mari_col, a)
 
 #### Descriptive Tables using colony data ####
 # Total genets per Site-Year:
@@ -615,7 +622,6 @@ smallcol <- rbind(step1,step2) %>% distinct()
 archive<-subset(archive, Site_Genet %notin% smallcol$Site_Genet)
 
 
-
 archive$Site <- sub("-", "_", archive$Site);archive$Site <- sub("-", "_", archive$Site) #twice for both underscores
 archive$Error_Category <- "Growth Data"
 archive$DataorError <- "DATA"
@@ -646,8 +652,9 @@ archive <- archive %>% dplyr::select(Site, Island, Island_Code, Latitude, Longit
 head(archive)
 
 #### Export Data ####
-setwd('C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files')
-write.csv(mari,"MARAMP22_VitalRates_CLEAN.csv",row.names = F)
+# setwd('C:/Users/Corinne.Amir/Documents/Vital Rates/Analysis/MARAMP22/CSV files')
+setwd('C:/Users/Corinne.Amir/Documents/GitHub/Marianas_VitalRates/MARAMP22/CSV files')
+write.csv(mari,"MARAMP22_VitalRates_patchlevel_CLEAN.csv",row.names = F)
 write.csv(mari_col,"MARAMP22_VitalRates_colonylevel_CLEAN.csv",row.names = F)
 write.csv(archive,"MARAMP22_VitalRates_colonylevel_archive.csv",row.names = F)
 
