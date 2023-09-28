@@ -231,25 +231,7 @@ aa <- left_join(a,b)
 
 
 
-#### Create dataframe for change in colony planar area ####
-mari_17 <- mari_col %>% filter(Year == 2017) %>% 
-           rename(c(TL_Area_2017 = TL_Area, TL_Perim_2017 = TL_Perim, area_perim_2017 = area_perim,
-                    Shape_Leng_2017 = Shape_Leng, Shape_Area_2017 = Shape_Area)) %>%
-           select(-c(TimePt, Year, TL_Date, Genet_full))
-mari_22 <- mari_col %>% filter(Year == 2022) %>% 
-           rename(c(TL_Area_2022 = TL_Area, TL_Perim_2022 = TL_Perim, area_perim_2022 = area_perim,
-           Shape_Leng_2022 = Shape_Leng, Shape_Area_2022 = Shape_Area)) %>%
-           select(-c(TimePt, Year, TL_Date, Genet_full))
 
-mari_change <- left_join(mari_17, mari_22)
-mari_change <- na.omit(mari_change) # a = 423, this = 439 
-
-a <- mari_change %>% group_by(Site_Genet) %>%
-  mutate(TL_Area_Change = TL_Area_2022 - TL_Area_2017) %>%
-  mutate(TL_Perim_Change = TL_Perim_2022 - TL_Perim_2017) %>%
-  mutate(Shape_Area_Change = TL_Perim_2022 - TL_Perim_2017) %>%
-  mutate(Shape_Length_Change = TL_Perim_2022 - TL_Perim_2017)
-  
 
 
 
@@ -295,9 +277,6 @@ aa <-ggplot(data = mari %>% filter(Region == "South" & Year != "2014") %>% dropl
 
 
 
-# Boxplot for change in area
-
-
 # Other stuff I wanna plot
 mari %>% group_by(Site, TimePt) %>% summarise(area = sum(Shape_Area)) %>%
   ggplot(aes(x = Site, y = area, fill = as.factor(TimePt))) +
@@ -306,15 +285,8 @@ mari %>% group_by(Site, TimePt) %>% summarise(area = sum(Shape_Area)) %>%
   facet_wrap(~TimePt)
 
 
-# Create Dataframe for qqplot (use Tom's code)
-mari_0 <- mari_col %>% filter(TimePt == 0)
-mari_1 <- mari_col %>% filter(TimePt == 1)
-mari_2 <- mari_col %>% filter(TimePt == 2)
 
-ggplot(mari_col, aes(x = ))
-stat_qq()
-
-#### Plot Site Map ####
+#### Plot Google Site Map ####
   
 setwd('C:/Users/Corinne.Amir/Documents/Github/ncrmp_common_maps')
 utm = read.csv('data/misc/ncrmp_utm_zones.csv')                               # Load UTM zones (double check they're correct)
@@ -453,142 +425,6 @@ mari_3 <- ggmap(map_s) +
   scale_x_continuous(limits=c(144.4,145.8)) +
   scale_y_continuous(limits=c(13.2,15.4)) 
 
-#### Run Statistics ####
-#### Kolmogorov-Smirnov tests ####
-# Break out individual sites, groups and years that look different based on kernel density plots/SFDs
-# Sites that have enough patches:
-  # For POSP: all sites except GUA-015
-  # For ACSP: maybe SAI-009
-  # For POCS: MAU-019 (but 2017 only has three corals)
-
-# First, lets not split by site:
-posp0 <- mari %>%
-  filter(Year %in% "2017",
-         Genus == "POSP")
-posp1 <- mari %>%
-  filter(Year %in% "2022",
-         Genus == "POSP")
-
-acsp0 <- mari %>%
-  filter(Year %in% "2017",
-         Genus == "ACSP")
-acsp1 <- mari %>%
-  filter(Year %in% "2022",
-         Genus == "ACSP")
-
-pocs0 <- mari %>%
-  filter(Year %in% "2017",
-         Genus == "POCS")
-pocs1 <- mari %>%
-  filter(Year %in% "2022",
-         Genus == "POCS")
-
-# Second, split by populated vs unpopulated:
-# POSP
-unpop.posp0 <- mari %>% 
-  filter(Island != "GUA" & Island != "SAI") %>%
-  filter(Year %in% "2017",
-  Genus == "POSP")
-unpop.posp1 <- mari %>% 
-  filter(Island != "GUA" & Island != "SAI") %>%
-  filter(Year %in% "2022",
-         Genus == "POSP")
-
-pop.posp0 <- mari %>% 
-  filter(Island == "GUA" | Island == "SAI") %>%
-  filter(Year %in% "2017",
-         Genus == "POSP")
-pop.posp1 <- mari %>% 
-  filter(Island == "GUA" | Island == "SAI") %>%
-  filter(Year %in% "2022",
-         Genus == "POSP")
-
-#ACSP
-unpop.acsp0 <- mari %>% 
-  filter(Island != "GUA" & Island != "SAI")%>%
-  filter(Year %in% "2017",
-         Genus == "ACSP") 
-unpop.acsp1 <- mari %>% 
-  filter(Island != "GUA" & Island != "SAI") %>%
-  filter(Year %in% "2022",
-         Genus == "ACSP") 
-
-pop.acsp0 <- mari %>% 
-  filter(Island == "GUA" | Island == "SAI") %>%
-  filter(Year %in% "2017",
-         Genus == "ACSP") # Guam only contributes 1 coral
-pop.acsp1 <- mari %>% 
-  filter(Island == "GUA" | Island == "SAI") %>%
-  filter(Year %in% "2022",
-         Genus == "ACSP") # Guam only contributes 1 coral
-
-# POCS
-unpop.pocs0 <- mari %>% 
-  filter(Island != "GUA" & Island != "SAI")%>%
-  filter(Year %in% "2017",
-         Genus == "POCS") # only 27 corals, none from Pagan
-unpop.pocs1 <- mari %>% 
-  filter(Island != "GUA" & Island != "SAI") %>%
-  filter(Year %in% "2022",
-         Genus == "POCS") # Pagan only contributes 2 corals
-
-pop.pocs0 <- mari %>% 
-  filter(Island == "GUA" | Island == "SAI") %>%
-  filter(Year %in% "2017",
-         Genus == "POCS") 
-pop.pocs1 <- mari %>% 
-  filter(Island == "GUA" | Island == "SAI") %>%
-  filter(Year %in% "2022",
-         Genus == "POCS") # only 26 corals
-
-# Kolmogorov-Smirnov tests:
-ks.test(posp0$TL_Area, posp1$TL_Area) # D = 0.064877, p-value = 0.009682
-ks.test(acsp0$TL_Area, acsp1$TL_Area) # D = 0.22441, p-value = 0.0002861
-ks.test(pocs0$TL_Area, pocs1$TL_Area) # D = 0.1688, p-value = 0.04478
-
-ks.test(unpop.posp0$TL_Area, unpop.posp1$TL_Area) # D = 0.094853, p-value = 0.004505
-ks.test(unpop.acsp0$TL_Area, unpop.acsp1$TL_Area) # D = 0.38083, p-value = 0.0001103
-ks.test(unpop.pocs0$TL_Area, unpop.pocs1$TL_Area) # D = 0.56427, p-value = 8.995e-07
-
-ks.test(pop.posp0$TL_Area, pop.posp1$TL_Area) # D = 0.206, p-value = 2.83e-11
-ks.test(pop.acsp0$TL_Area, pop.acsp1$TL_Area) # D = 0.31988, p-value = 0.001423
-ks.test(pop.pocs0$TL_Area, pop.pocs1$TL_Area) # D = 0.32456, p-value = 0.01164
-
-ks.test(pop.posp0$TL_Area, unpop.posp0$TL_Area) # D = 0.23539, p-value < 2.2e-16
-ks.test(pop.acsp0$TL_Area, unpop.acsp0$TL_Area) # D = 0.18831, p-value = 0.1432: ACSP distribution NOT different between populated and unpopulated islands before bleaching event!
-ks.test(pop.pocs0$TL_Area, unpop.pocs0$TL_Area) # D = 0.50975, p-value = 6.377e-05
-
-ks.test(pop.posp1$TL_Area, unpop.posp1$TL_Area) # D = 0.10806, p-value = 0.002973
-ks.test(pop.acsp1$TL_Area, unpop.acsp1$TL_Area) # D = 0.58855, p-value = 3.7e-10
-ks.test(pop.pocs1$TL_Area, unpop.pocs1$TL_Area) # D = 0.37908, p-value = 0.0004607
-
-
-#### Anovas ####
-# Create dataframes
-posp <- mari %>% filter(Genus == "POSP")
-acsp <- mari %>% filter(Genus == "ACSP")
-pocs <- mari %>% filter(Genus == "POCS")
-
-
-
-# Is mean size different between Islands 
-# Assumptions
-bartlett.test(TL_Area~as.factor(Year), data = posp) # significant: unequal variances
-bartlett.test(TL_Area~as.factor(Year), data = acsp) # significant
-bartlett.test(TL_Area~as.factor(Year), data = pocs) # significant
-tapply(posp$TL_Area, list(as.factor(posp$Year)), shapiro.test) # all significant: non-normal distribution
-
-bartlett.test(TL_Area~interaction(as.factor(OBS_YEAR), DEPTH_BIN), data = swa) # significant
-tapply(swa$AVG_DEPTH, list(swa$OBS_YEAR), shapiro.test) # all significant
-tapply(swa$AVG_DEPTH, list(swa$DEPTH_BIN), shapiro.test) # all significant
-
-
-#two-way anova
-summary(aov(CCA~as.factor(Year)*TRT, data = cca)) #trt and year are significant but interaction is not
-TukeyHSD(aov(CCA~as.factor(Year), data = cca)) 
-# 1709 > 1510, 1606, 1609
-TukeyHSD(aov(CCA~TRT, data = cca)) 
-# REM > BYSP, RAN, XSP
 
 
 #### Format dataframe into archive csv file ####
